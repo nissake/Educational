@@ -51,39 +51,49 @@
   <div id="forfun-list">Loading…</div>
 
   <script>
-    // Auto-list files inside a folder
-    function loadFolder(folder, elementId) {
-      fetch(folder)
-        .then(r => r.text())
-        .then(html => {
-          const container = document.getElementById(elementId);
-          container.innerHTML = "";
+  // Convert filenames into nice titles
+  function prettyName(filename) {
+    return filename
+      .replace(".html", "")
+      .replace(/[-_]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
 
-          // Extract links from directory listing
-          const links = [...html.matchAll(/href="([^"]+\.html)"/g)];
+  // Auto-list files inside a folder
+  function loadFolder(folder, elementId) {
+    fetch(folder)
+      .then(r => r.text())
+      .then(html => {
+        const container = document.getElementById(elementId);
+        container.innerHTML = "";
 
-          if (links.length === 0) {
-            container.textContent = "(none yet)";
-            return;
-          }
+        const links = [...html.matchAll(/href="([^"]+\.html)"/g)];
 
-          links.forEach(match => {
-            const file = match[1];
-            const a = document.createElement("a");
-            a.href = folder + file;
-            a.textContent = file.replace(".html", "");
-            container.appendChild(a);
-          });
-        })
-        .catch(() => {
-          document.getElementById(elementId).textContent = "(folder not found)";
+        if (links.length === 0) {
+          container.textContent = "(none yet)";
+          return;
+        }
+
+        links.forEach(match => {
+          const file = match[1];
+          const a = document.createElement("a");
+          a.href = folder + file;
+          a.textContent = prettyName(file);
+          container.appendChild(a);
         });
-    }
+      })
+      .catch(() => {
+        document.getElementById(elementId).textContent = "(folder not found)";
+      });
+  }
 
-    loadFolder("math/", "math-list");
-    loadFolder("reading/", "reading-list");
-    loadFolder("forfun/", "forfun-list");
-  </script>
+  loadFolder("math/", "math-list");
+  loadFolder("reading/", "reading-list");
+  loadFolder("forfun/", "forfun-list");
+</script>
+
 
 </body>
 </html>
