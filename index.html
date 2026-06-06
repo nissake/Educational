@@ -91,7 +91,10 @@
         htmlFiles.forEach(item => {
           const file = item.name;
           const a = document.createElement("a");
-          a.href = `${folder}${file}`;
+
+          // ⭐ Corrected link path for GitHub Pages project site
+          a.href = `Educational/${folder}${file}`;
+
           a.textContent = prettyName(file);
           container.appendChild(a);
         });
