@@ -5,8 +5,8 @@
   <title>Nissake's Education Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<base href="/Educational/">
-  
+  <base href="/Educational/">
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,6 +26,7 @@
       margin-top: 30px;
       border-bottom: 1px solid #ccc;
       padding-bottom: 4px;
+      text-transform: capitalize;
     }
     a {
       color: #0645ad;
@@ -43,72 +44,64 @@
 
   <h1>Nissake's Education Page</h1>
 
-  <h2>Math</h2>
-  <div id="math-list">Loading…</div>
-
-  <h2>Reading</h2>
-  <div id="reading-list">Loading…</div>
-
-  <h2>For Fun</h2>
-  <div id="forfun-list">Loading…</div>
+  <div id="content"></div>
 
   <script>
-  // Convert filenames into nice titles
-  function prettyName(filename) {
-    return filename
-      .replace(".html", "")
-      .replace(/[-_]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .replace(/\b\w/g, c => c.toUpperCase());
-  }
+    // Convert folder names into nice titles
+    function prettyFolder(name) {
+      return name.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
 
-  // Load files from a repo folder using GitHub API
-  function loadFolder(folder, elementId) {
-    const apiUrl = `https://api.github.com/repos/nissake/Educational/contents/${folder}`;
+    // Convert filenames into nice titles
+    function prettyFile(filename) {
+      return filename
+        .replace(".html", "")
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
 
-    fetch(apiUrl)
-      .then(r => {
-        if (!r.ok) throw new Error("API error");
-        return r.json();
-      })
+    // Load all folders in the repo root
+    fetch("https://api.github.com/repos/nissake/Educational/contents/")
+      .then(r => r.json())
       .then(items => {
-        const container = document.getElementById(elementId);
-        container.innerHTML = "";
+        const folders = items.filter(item => item.type === "dir");
+        const container = document.getElementById("content");
 
-        // Filter for .html files, ignore .keep and non-files
-        const htmlFiles = items
-          .filter(item =>
-            item.type === "file" &&
-            item.name.endsWith(".html") &&
-            item.name !== "index.html"
-          )
-          .sort((a, b) => a.name.localeCompare(b.name));
+        folders.forEach(folder => {
+          const folderName = folder.name;
 
-        if (htmlFiles.length === 0) {
-          container.textContent = "(none yet)";
-          return;
-        }
+          // Create headline
+          const h2 = document.createElement("h2");
+          h2.textContent = prettyFolder(folderName);
+          container.appendChild(h2);
 
-        htmlFiles.forEach(item => {
-          const file = item.name;
-          const a = document.createElement("a");
+          // Create list container
+          const listDiv = document.createElement("div");
+          listDiv.textContent = "Loading…";
+          container.appendChild(listDiv);
 
-          // ⭐ Correct relative link — homepage is already inside /Educational/
-          a.href = `${folder}${file}`;
+          // Load files inside folder
+          fetch(`https://api.github.com/repos/nissake/Educational/contents/${folderName}`)
+            .then(r => r.json())
+            .then(files => {
+              listDiv.innerHTML = "";
 
-          a.textContent = prettyName(file);
-          container.appendChild(a);
+              const htmlFiles = files.filter(f => f.type === "file" && f.name.endsWith(".html"));
+
+              if (htmlFiles.length === 0) {
+                listDiv.textContent = "(none yet)";
+                return;
+              }
+
+              htmlFiles.forEach(file => {
+                const a = document.createElement("a");
+                a.href = `${folderName}/${file.name}`;
+                a.textContent = prettyFile(file.name);
+                listDiv.appendChild(a);
+              });
+            });
         });
-      })
-      .catch(() => {
-        document.getElementById(elementId).textContent = "(folder not found)";
       });
-  }
-
-  loadFolder("math/", "math-list");
-  loadFolder("reading/", "reading-list");
-  loadFolder("forfun/", "forfun-list");
   </script>
 
 </body>
