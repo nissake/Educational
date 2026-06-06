@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nissake's Education Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #000;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.4;
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 20px;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+    }
+    a {
+      color: #0645ad;
+      text-decoration: none;
+      display: block;
+      padding: 4px 0;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Nissake's Education Page</h1>
+
+  <h2>Math</h2>
+  <div id="math-list">Loading…</div>
+
+  <h2>Reading</h2>
+  <div id="reading-list">Loading…</div>
+
+  <h2>For Fun</h2>
+  <div id="forfun-list">Loading…</div>
+
+  <script>
+    // Auto-list files inside a folder
+    function loadFolder(folder, elementId) {
+      fetch(folder)
+        .then(r => r.text())
+        .then(html => {
+          const container = document.getElementById(elementId);
+          container.innerHTML = "";
+
+          // Extract links from directory listing
+          const links = [...html.matchAll(/href="([^"]+\.html)"/g)];
+
+          if (links.length === 0) {
+            container.textContent = "(none yet)";
+            return;
+          }
+
+          links.forEach(match => {
+            const file = match[1];
+            const a = document.createElement("a");
+            a.href = folder + file;
+            a.textContent = file.replace(".html", "");
+            container.appendChild(a);
+          });
+        })
+        .catch(() => {
+          document.getElementById(elementId).textContent = "(folder not found)";
+        });
+    }
+
+    loadFolder("math/", "math-list");
+    loadFolder("reading/", "reading-list");
+    loadFolder("forfun/", "forfun-list");
+  </script>
+
+</body>
+</html>
