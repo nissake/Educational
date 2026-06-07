@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    :root {
+      --problem-font-size: 44px;
+      --problem-padding-y: 20px;
+      --problem-padding-x: 40px;
+    }
+
+    @media (max-width: 700px) {
+      :root {
+        --problem-font-size: 38px;
+        --problem-padding-y: 18px;
+        --problem-padding-x: 28px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :root {
+        --problem-font-size: 32px;
+        --problem-padding-y: 16px;
+        --problem-padding-x: 22px;
+      }
+    }
+
+    body {
+      margin: 0;
+      background: #f4f7ff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      color: #111827;
+      padding: 16px;
+    }
+
+    .app {
+      display: flex;
+      max-width: 960px;
+      width: 100%;
+      gap: 20px;
+    }
+
+    /* Progress panel */
+    .progress-panel {
+      width: 320px;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 16px 18px;
+      box-shadow: 0 4px 12px rgba(15,23,42,0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .progress-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #1d4ed8;
+    }
+
+    .progress-subtitle {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    .problem-row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: #f9fafb;
+    }
+
+    .problem-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .problem-text {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .mastered-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .mastered-label span {
+      font-size: 16px;
+    }
+
+    .tiles-row {
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      width: 100%;
+      max-width: 260px;
+      overflow: hidden;
+      padding-top: 2px;
+    }
+
+    .tile {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .tile.correct {
+      background: #22c55e;
+    }
+
+    .tile.incorrect {
+      background: #ef4444;
+    }
+
+    /* Main area */
+    .main-area {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 24px 26px;
+      box-shadow: 0 4px 12px rgba(15,23,42,0.08);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    .card-header {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d4ed8;
+      margin-bottom: 6px;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 18px;
+    }
+
+    .flashcard {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .problem-display {
+      font-size: var(--problem-font-size);
+      font-weight: 800;
+      color: #111827;
+      padding: var(--problem-padding-y) var(--problem-padding-x);
+      border-radius: 20px;
+      background: linear-gradient(135deg, #e0f2fe, #fef9c3);
+      border: 3px solid #38bdf8;
+      min-width: 220px;
+      text-align: center;
+    }
+
+    .answer-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .answer-input {
+      font-size: 20px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid #cbd5f5;
+      width: 180px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .answer-input:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+    }
+
+    .submit-btn {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 700;
+      padding: 10px 40px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(79,70,229,0.4);
+      transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+    }
+
+    .submit-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(79,70,229,0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .feedback {
+      min-height: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .feedback.correct {
+      color: #16a34a;
+    }
+
+    .feedback.incorrect {
+      color: #e11d48;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    /* Reward overlay */
+    .reward-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.96);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .reward-overlay.visible {
+      display: flex;
+    }
+
+    .coin {
+      font-size: 80px;
+      margin-bottom: 16px;
+    }
+
+    .reward-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #d97706;
+      margin-bottom: 8px;
+    }
+
+    .reward-text {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 16px;
+    }
+
+    .restart-btn {
+      font-size: 16px;
+      padding: 8px 24px;
+      border-radius: 999px;
+      border: none;
+      background: #22c55e;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(34,197,94,0.4);
+    }
+
+    @media (max-width: 800px) {
+      body {
+        align-items: flex-start;
+        padding: 12px;
+      }
+      .app {
+        flex-direction: column;
+      }
+      .progress-panel {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="progress-panel">
+      <div class="progress-title">Your Progress</div>
+      <div class="progress-subtitle">
+        Green = correct, Red = incorrect. Newest tile is on the left.
+      </div>
+      <div id="problemsList"></div>
+    </div>
+
+    <div class="main-area">
+      <div class="card-header"></div>
+      <div class="card-subtitle">
+        Type your answer, then press Submit or Enter.
+      </div>
+
+      <div class="flashcard">
+        <div class="problem-display" id="currentProblemText">Loading...</div>
+
+        <div class="answer-row">
+          <input
+            id="answerInput"
+            class="answer-input"
+            type="text"
+            autocomplete="off"
+            placeholder="Your answer"
+          />
+          <button id="submitBtn" class="submit-btn">Submit</button>
+          <div class="hint">Example: 4 × 4 = 16</div>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+      </div>
+
+      <div class="reward-overlay" id="rewardOverlay">
+        <div class="coin">🪙</div>
+        <div class="reward-title">Gold Coin Earned!</div>
+        <div class="reward-text">
+          You mastered all the square facts. Awesome work!<br>
+          Want to practice again?
+        </div>
+        <button class="restart-btn" id="restartBtn">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Problem data ----------
+const initialProblems = [
+  { id: 1, text: "8 × 2", answer: 16 },
+  { id: 2, text: "8 × 3", answer: 24 },
+  { id: 3, text: "8 × 4", answer: 32 },
+  { id: 4, text: "8 × 5", answer: 40 },
+  { id: 5, text: "8 × 6", answer: 48 },
+  { id: 6, text: "8 × 7", answer: 56 },
+  { id: 7, text: "8 × 8", answer: 64 },
+  { id: 8, text: "8 × 9", answer: 72 },
+  { id: 9, text: "8 × 10", answer: 80 },
+  { id: 10, text: "8 × 11", answer: 88 },
+  { id: 11, text: "8 × 12", answer: 96 }
+];
+
+
+    const MAX_TILES = 12;
+
+    let problems = [];
+    let currentProblemId = null;
+
+    // ---------- Initialization ----------
+    function resetProblems() {
+      problems = initialProblems.map(p => ({
+        ...p,
+        history: [],
+        mastered: false
+      }));
+    }
+
+    function getProblemById(id) {
+      return problems.find(p => p.id === id);
+    }
+
+    function getActiveProblems() {
+      return problems.filter(p => !p.mastered);
+    }
+
+    // ---------- Mastery ----------
+    function isMastered(problem) {
+      if (problem.history.length < 3) return false;
+      const lastThree = problem.history.slice(0, 3);
+      return lastThree.every(h => h.correct === true);
+    }
+
+    // ---------- Random selection ----------
+    function chooseNextProblemId() {
+      const active = getActiveProblems();
+      if (active.length === 0) return null;
+      const index = Math.floor(Math.random() * active.length);
+      return active[index].id;
+    }
+
+    // ---------- Progress panel ----------
+    function renderProgressPanel() {
+      const container = document.getElementById("problemsList");
+      container.innerHTML = "";
+
+      problems.forEach(problem => {
+        const row = document.createElement("div");
+        row.className = "problem-row";
+
+        const header = document.createElement("div");
+        header.className = "problem-header";
+
+        const text = document.createElement("div");
+        text.className = "problem-text";
+        text.textContent = problem.text;
+        header.appendChild(text);
+
+        if (problem.mastered) {
+          const mastered = document.createElement("div");
+          mastered.className = "mastered-label";
+          mastered.innerHTML = '<span>✓</span> Mastered';
+          header.appendChild(mastered);
+        }
+
+        row.appendChild(header);
+
+        const tilesRow = document.createElement("div");
+        tilesRow.className = "tiles-row";
+
+        for (let i = 0; i < MAX_TILES; i++) {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+          const entry = problem.history[i];
+          if (entry) {
+            tile.classList.add(entry.correct ? "correct" : "incorrect");
+          }
+          tilesRow.appendChild(tile);
+        }
+
+        row.appendChild(tilesRow);
+        container.appendChild(row);
+      });
+    }
+
+    // ---------- Flashcard ----------
+    function renderCurrentProblem() {
+      const problemDisplay = document.getElementById("currentProblemText");
+      const answerInput = document.getElementById("answerInput");
+      const feedback = document.getElementById("feedback");
+      const submitBtn = document.getElementById("submitBtn");
+
+      const nextId = chooseNextProblemId();
+      currentProblemId = nextId;
+
+      if (nextId === null) {
+        problemDisplay.textContent = "All done!";
+        answerInput.disabled = true;
+        submitBtn.disabled = true;
+        feedback.textContent = "";
+        showReward();
+        return;
+      }
+
+      const problem = getProblemById(nextId);
+      problemDisplay.textContent = problem.text;
+      answerInput.value = "";
+      answerInput.disabled = false;
+      submitBtn.disabled = false;
+      feedback.textContent = "";
+      feedback.className = "feedback";
+      answerInput.focus();
+    }
+
+    // ---------- Reward ----------
+    function showReward() {
+      const overlay = document.getElementById("rewardOverlay");
+      overlay.classList.add("visible");
+    }
+
+    function hideReward() {
+      const overlay = document.getElementById("rewardOverlay");
+      overlay.classList.remove("visible");
+    }
+
+    // ---------- Answer handling ----------
+    function handleSubmit() {
+      const answerInput = document.getElementById("answerInput");
+      const feedback = document.getElementById("feedback");
+      const submitBtn = document.getElementById("submitBtn");
+
+      if (currentProblemId === null) return;
+
+      const raw = answerInput.value.trim();
+      const userValue = parseInt(raw, 10);
+
+      if (isNaN(userValue)) {
+        feedback.textContent = "Please enter a number.";
+        feedback.className = "feedback incorrect";
+        return;
+      }
+
+      const problem = getProblemById(currentProblemId);
+      const correct = userValue === problem.answer;
+
+      problem.history.unshift({ correct });
+      problem.mastered = isMastered(problem);
+
+      if (correct) {
+        feedback.textContent = "Nice job! That's correct.";
+        feedback.className = "feedback correct";
+      } else {
+        feedback.textContent = "Not quite. Try again next time!";
+        feedback.className = "feedback incorrect";
+      }
+
+      renderProgressPanel();
+
+      submitBtn.disabled = true;
+      answerInput.disabled = true;
+
+      const allMastered = problems.every(p => p.mastered);
+
+      if (allMastered) {
+        setTimeout(() => {
+          showReward();
+        }, 800);
+        return;
+      }
+
+      if (correct) {
+        // Auto‑advance after a short pause on correct
+        setTimeout(() => {
+          renderCurrentProblem();
+        }, 1200);
+      } else {
+        // Keep the shorter pause on incorrect
+        setTimeout(() => {
+          renderCurrentProblem();
+        }, 700);
+      }
+    }
+
+    // ---------- Events ----------
+    function setupEvents() {
+      const submitBtn = document.getElementById("submitBtn");
+      const answerInput = document.getElementById("answerInput");
+      const restartBtn = document.getElementById("restartBtn");
+
+      submitBtn.addEventListener("click", handleSubmit);
+
+      answerInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleSubmit();
+        }
+      });
+
+      restartBtn.addEventListener("click", () => {
+        hideReward();
+        resetProblems();
+        renderProgressPanel();
+        renderCurrentProblem();
+      });
+    }
+
+    // ---------- Start app ----------
+    resetProblems();
+    window.addEventListener("load", () => {
+      setupEvents();
+      renderProgressPanel();
+      renderCurrentProblem();
+    });
+  </script>
+</body>
+</html>
