@@ -295,7 +295,7 @@ const OPERATOR_BLANK_WEIGHT = 0;
 const RANGE = {
   "+": { min: 0, max: 5, skip: 0 },
   "-": { min: 0, max: 5, skip: 0 },
-  "×": { min: -6, max: 6, skip: 2 },   // skip -2..2
+  "×": { min: -6, max: 6, skip: 2 },   // skip 2 is -2..2
   "÷": { min: 1, max: 12, skip: 0 }
 };
 
@@ -556,7 +556,8 @@ function generateWorksheet() {
 
     if (blankPool.length === 0) blankPool = [2];
 
-    p.blankType = randInt(0, blankPool.length - 1);
+   p.blankType = blankPool[randInt(0, blankPool.length - 1)];
+
 
     p.orientation = Math.random() < 0.5 ? "inline" : "stacked";
 
