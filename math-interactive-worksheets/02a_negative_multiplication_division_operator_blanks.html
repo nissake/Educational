@@ -1,0 +1,638 @@
+<!-- ********************************************
+     * Change SETTINGS in js script down page
+     ******************************************** -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title></title>
+
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .page {
+      max-width: 950px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      font-size: 18px;
+    }
+
+    .worksheet {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px 16px;
+    }
+
+    .problem {
+      font-size: 30px;
+      text-align: center;
+      min-height: 60px;
+      white-space: nowrap;
+      padding: 14px 10px;
+      border-radius: 14px;
+      border: 1px solid #cccccc;
+      background: white;
+      transition: background-color 0.2s ease;
+    }
+
+    .problem.unanswered { background: transparent; }
+    .problem.correct { background: #d8f7d2; }
+    .problem.incorrect { background: #ffd9d9; }
+
+    .answer-input {
+      width: 54px;
+      height: 54px;
+      font-size: 28px;
+      text-align: center;
+      border: 3px solid black;
+      border-radius: 0px;
+      background: white;
+      outline: none;
+      margin: 0 5px;
+      vertical-align: middle;
+      box-sizing: border-box;
+    }
+
+    /* ⭐ BOX FOR SHOWN ANSWERS */
+    .answer-box {
+      display: inline-block;
+      width: 54px;
+      height: 54px;
+      font-size: 28px;
+      line-height: 54px;
+      text-align: center;
+      border: 3px solid black;
+      background: #fdfdfd;
+      margin: 0 5px;
+      box-sizing: border-box;
+    }
+
+    #generateBtn {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 18px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #generateBtn:hover { background-color: #0069d9; }
+
+    #toggleAnswersBtn {
+      background-color: #17a2b8;
+      color: white;
+      padding: 10px 18px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #toggleAnswersBtn:hover { background-color: #138496; }
+
+    .reward-area {
+      text-align: center;
+      min-height: 120px;
+      margin-bottom: 20px;
+    }
+
+    .coin {
+      display: none;
+      font-size: 80px;
+      animation: popIn 0.5s ease;
+    }
+
+    .reward-text {
+      display: none;
+      margin-top: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #a16207;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+
+/********************************************
+ * MOBILE‑FRIENDLY RESPONSIVE LAYOUT
+ * These rules ONLY apply on smaller screens.
+ * Desktop layout remains unchanged.
+ ********************************************/
+
+/* Medium screens (tablets, small laptops) */
+@media (max-width: 900px) {
+  .worksheet {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Small screens (phones in landscape or large phones) */
+@media (max-width: 600px) {
+  .worksheet {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px 12px;
+  }
+
+  .problem {
+    font-size: 24px;
+    padding: 12px 8px;
+  }
+
+  .answer-input,
+  .answer-box {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+    line-height: 48px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  #generateBtn,
+  #toggleAnswersBtn {
+    font-size: 14px;
+    padding: 8px 14px;
+  }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 400px) {
+  .worksheet {
+    grid-template-columns: 1fr;
+    gap: 16px 10px;
+  }
+
+  .problem {
+    font-size: 20px;
+    padding: 10px 6px;
+  }
+
+  .answer-input,
+  .answer-box {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+    line-height: 42px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  #generateBtn,
+  #toggleAnswersBtn {
+    font-size: 13px;
+    padding: 7px 12px;
+  }
+}
+
+
+  </style>
+</head>
+
+<body>
+
+  <div class="page">
+
+    <div style="text-align:center; margin-bottom:20px;">
+      <button id="generateBtn">Generate New Worksheet</button>
+      <button id="toggleAnswersBtn">Show Answers</button>
+    </div>
+
+    <h1 id="worksheetTitle"></h1>
+    <div class="subtitle" id="worksheetSubtitle"></div>
+
+    <div class="info-row">
+      <div>Name: __________________</div>
+      <div>Date: __________________</div>
+    </div>
+
+    <div class="reward-area">
+      <div id="coin" class="coin">🪙</div>
+      <div id="rewardText" class="reward-text">
+        Amazing job! You solved every problem!
+      </div>
+    </div>
+
+    <div id="worksheet" class="worksheet"></div>
+
+  </div>
+
+<script>
+window.onload = function() {
+
+/********************************************
+ * SETTINGS
+ ********************************************/
+
+let PAGE_TITLE = "Negative Multiplication Division, Operator Blanks";
+let WORKSHEET_TITLE = "Negative Multiplication Division, Operator Blanks";
+let WORKSHEET_SUBTITLE = "";
+let showingAnswers = false;
+
+const NUM_PROBLEMS = 12;
+const INPUT_MAX_LENGTH = 4;
+
+/***** Which blanks are allowed? *****/
+const ALLOW_LEFT_BLANK = false;
+const ALLOW_RIGHT_BLANK = false;
+const ALLOW_ANSWER_BLANK = false;
+const ALLOW_OPERATOR_BLANK = true;
+
+/***** Weighting for problem generation *****/
+const OPERATOR_WEIGHTS = { 
+  "+": 0, 
+  "-": 0, 
+  "×": 1, 
+  "÷": 1
+};
+
+/***** Weighting for operator blanks *****/
+const OPERATOR_BLANK_WEIGHT = 1;
+
+/***** RANGE WITH PER-OPERATOR SKIP SETTINGS *****/
+const RANGE = {
+  "+": { min: 2, max: 20, skip: 0 },
+  "-": { min: 2, max: 20, skip: 0 },
+  "×": { min: -12, max: 12, skip: 1 },   // skip 2 is -2..2
+  "÷": { min: -12, max: 12, skip: 1 }
+};
+
+const ALLOW_NEGATIVE_SUBTRACTION = false;
+
+
+/********************************************
+ * DOM ELEMENTS
+ ********************************************/
+const worksheet = document.getElementById("worksheet");
+const coin = document.getElementById("coin");
+const rewardText = document.getElementById("rewardText");
+const titleEl = document.getElementById("worksheetTitle");
+const subtitleEl = document.getElementById("worksheetSubtitle");
+const toggleBtn = document.getElementById("toggleAnswersBtn");
+
+
+/********************************************
+ * CORE HELPERS
+ ********************************************/
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randWithGap(min, max, skipRadius = 0) {
+  while (true) {
+    const n = randInt(min, max);
+    if (Math.abs(n) > skipRadius) return n;
+  }
+}
+
+function isValid(a, b, answer, min, max) {
+  return (
+    a >= min && a <= max &&
+    b >= min && b <= max &&
+    answer >= min && answer <= max
+  );
+}
+
+function weightedRandomOperator() {
+  const entries = Object.entries(OPERATOR_WEIGHTS);
+  const total = entries.reduce((s, [, w]) => s + w, 0);
+  let r = Math.random() * total;
+  for (const [op, w] of entries) {
+    if (r < w) return op;
+    r -= w;
+  }
+}
+
+
+/********************************************
+ * PROBLEM GENERATORS
+ ********************************************/
+function makeAdditionProblem() {
+  const { min, max, skip } = RANGE["+"];
+  while (true) {
+    const a = randWithGap(min, max, skip);
+    const b = randWithGap(min, max, skip);
+    const answer = a + b;
+    if (isValid(a, b, answer, min, max)) return { a, b, op: "+", answer };
+  }
+}
+
+function makeSubtractionProblem() {
+  const { min, max, skip } = RANGE["-"];
+  while (true) {
+    let a = randWithGap(min, max, skip);
+    let b = randWithGap(min, max, skip);
+    if (!ALLOW_NEGATIVE_SUBTRACTION && b > a) continue;
+    const answer = a - b;
+    if (isValid(a, b, answer, min, max)) return { a, b, op: "-", answer };
+  }
+}
+
+function makeMultiplicationProblem() {
+  const { min, max, skip } = RANGE["×"];
+  while (true) {
+    const a = randWithGap(min, max, skip);
+    const b = randWithGap(min, max, skip);
+    const answer = a * b;
+
+    // ⭐ FIX: Multiplication answers are NOT range-limited
+    return { a, b, op: "×", answer };
+  }
+}
+
+function makeDivisionProblem() {
+  const { min, max, skip } = RANGE["÷"];
+  while (true) {
+    const b = randWithGap(min, max, skip);
+    if (b === 0) continue;
+
+    const answer = randWithGap(min, max, skip);
+    const a = b * answer;
+
+    // ⭐ FIX: Division answers are NOT range-limited
+    return { a, b, op: "÷", answer };
+  }
+}
+
+function generateRandomProblem() {
+  const op = weightedRandomOperator();
+  if (op === "+") return makeAdditionProblem();
+  if (op === "-") return makeSubtractionProblem();
+  if (op === "×") return makeMultiplicationProblem();
+  return makeDivisionProblem();
+}
+
+
+/********************************************
+ * PURE MATH OPERATOR VALIDITY
+ ********************************************/
+function getValidOperators(a, b, answer) {
+  const ops = [];
+  if (a + b === answer) ops.push("+");
+  if (a - b === answer) ops.push("-");
+  if (a * b === answer) ops.push("×");
+  if (b !== 0 && a / b === answer) ops.push("÷");
+  return ops;
+}
+
+
+/********************************************
+ * RENDERING
+ ********************************************/
+function renderInline(problem) {
+  const inputHTML = `<input class="answer-input" maxlength="${INPUT_MAX_LENGTH}">`;
+
+  let left = problem.a;
+  let right = problem.b;
+  let ans = problem.answer;
+  let op = problem.op;
+
+  if (problem.blankType === 0) left = inputHTML;
+  if (problem.blankType === 1) right = inputHTML;
+  if (problem.blankType === 2) ans = inputHTML;
+  if (problem.blankType === 3) op = inputHTML;
+
+  return `${left} ${op} ${right} = ${ans}`;
+}
+
+function renderStacked(problem) {
+  const inputHTML = `<input class="answer-input" maxlength="${INPUT_MAX_LENGTH}">`;
+
+  let a = problem.a;
+  let b = problem.b;
+  let ans = problem.answer;
+  let op = problem.op;
+
+  if (problem.blankType === 0) a = inputHTML;
+  if (problem.blankType === 1) b = inputHTML;
+  if (problem.blankType === 2) ans = inputHTML;
+  if (problem.blankType === 3) op = inputHTML;
+
+  return `
+    <div style="font-family: monospace; line-height: 1.1;">
+      <div style="text-align:right;">${a}</div>
+      <div style="text-align:right;">${op} ${b}</div>
+      <div style="border-top: 3px solid black; margin: 4px 0;"></div>
+      <div style="text-align:right;">${ans}</div>
+    </div>
+  `;
+}
+
+
+/********************************************
+ * PROBLEM ELEMENT CREATION
+ ********************************************/
+function createProblemElement(problem) {
+  const div = document.createElement("div");
+  div.className = "problem unanswered";
+
+  const html =
+    problem.orientation === "inline"
+      ? renderInline(problem)
+      : renderStacked(problem);
+
+  div.innerHTML = html;
+
+  div.originalHTML = div.innerHTML;
+  div.problemData = problem;
+
+  const input = div.querySelector("input");
+
+  if (input) {
+    input.addEventListener("input", () => {
+      const value = input.value;
+      let correct;
+
+      if (problem.blankType === 3) {
+        const validOps = getValidOperators(problem.a, problem.b, problem.answer);
+
+        correct = [];
+
+        if (validOps.includes("×")) correct.push("×", "x", "X", "*");
+        if (validOps.includes("÷")) correct.push("÷", "/");
+        if (validOps.includes("+")) correct.push("+");
+        if (validOps.includes("-")) correct.push("-");
+
+        div.classList.remove("correct", "incorrect", "unanswered");
+
+        if (value === "") div.classList.add("unanswered");
+        else if (correct.includes(value)) div.classList.add("correct");
+        else div.classList.add("incorrect");
+
+        checkForCompletion();
+        return;
+      }
+
+      correct =
+        problem.blankType === 0 ? problem.a :
+        problem.blankType === 1 ? problem.b :
+        problem.answer;
+
+      div.classList.remove("correct", "incorrect", "unanswered");
+
+      if (value === "") div.classList.add("unanswered");
+      else if (value == correct) div.classList.add("correct");
+      else div.classList.add("incorrect");
+
+      checkForCompletion();
+    });
+  }
+
+  return div;
+}
+
+function checkForCompletion() {
+  const all = document.querySelectorAll(".problem");
+  const allCorrect = [...all].every(p => p.classList.contains("correct"));
+  coin.style.display = allCorrect ? "block" : "none";
+  rewardText.style.display = allCorrect ? "block" : "none";
+}
+
+
+/********************************************
+ * WORKSHEET GENERATION
+ ********************************************/
+function generateWorksheet() {
+  worksheet.innerHTML = "";
+  coin.style.display = "none";
+  rewardText.style.display = "none";
+
+  for (let i = 0; i < NUM_PROBLEMS; i++) {
+    let p = generateRandomProblem();
+
+    let blankPool = [];
+
+    if (ALLOW_LEFT_BLANK)  blankPool.push(0);
+    if (ALLOW_RIGHT_BLANK) blankPool.push(1);
+    if (ALLOW_ANSWER_BLANK) blankPool.push(2);
+
+    if (ALLOW_OPERATOR_BLANK) {
+      for (let w = 0; w < OPERATOR_BLANK_WEIGHT; w++) {
+        blankPool.push(3);
+      }
+    }
+
+    if (blankPool.length === 0) blankPool = [2];
+
+   p.blankType = blankPool[randInt(0, blankPool.length - 1)];
+
+
+    p.orientation = Math.random() < 0.5 ? "inline" : "stacked";
+
+    if (p.op === "×") {
+      if (p.a === 0 && p.blankType === 1) {
+        p.blankType = randInt(0, 1) === 0 ? 0 : 2;
+      }
+      if (p.b === 0 && p.blankType === 0) {
+        p.blankType = randInt(0, 1) === 0 ? 1 : 2;
+      }
+    }
+
+    if (p.blankType === 3) {
+      const validOps = getValidOperators(p.a, p.b, p.answer);
+      if (validOps.length === 0) {
+        i--;
+        continue;
+      }
+    }
+
+    worksheet.appendChild(createProblemElement(p));
+  }
+}
+
+
+/********************************************
+ * ANSWER TOGGLING
+ ********************************************/
+function toggleAnswers() {
+  showingAnswers = !showingAnswers;
+  toggleBtn.textContent = showingAnswers ? "Hide Answers" : "Show Answers";
+
+  const problems = worksheet.querySelectorAll(".problem");
+
+  problems.forEach(problem => {
+    const p = problem.problemData;
+
+    if (!showingAnswers) {
+      const rebuilt = createProblemElement(p);
+      problem.replaceWith(rebuilt);
+      return;
+    }
+
+    let correct;
+
+    if (p.blankType === 3) {
+      correct = p.op;
+    } else {
+      correct =
+        p.blankType === 0 ? p.a :
+        p.blankType === 1 ? p.b :
+        p.answer;
+    }
+
+    const answerBox = `<span class="answer-box">${correct}</span>`;
+    problem.innerHTML = problem.originalHTML.replace(/<input[^>]*>/, answerBox);
+  });
+
+  coin.style.display = "none";
+  rewardText.style.display = "none";
+}
+
+
+/********************************************
+ * INIT
+ ********************************************/
+document.getElementById("generateBtn").addEventListener("click", generateWorksheet);
+toggleBtn.addEventListener("click", toggleAnswers);
+
+titleEl.textContent = WORKSHEET_TITLE;
+subtitleEl.textContent = WORKSHEET_SUBTITLE;
+document.title = PAGE_TITLE;
+
+generateWorksheet();
+
+}; // END window.onload
+</script>
