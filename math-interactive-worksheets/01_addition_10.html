@@ -475,7 +475,8 @@ function createProblemElement(problem) {
 
   div.innerHTML = html;
 
-  div.originalHTML = html;
+  div.originalHTML = div.innerHTML;
+
   div.problemData = problem;
 
   const input = div.querySelector("input");
