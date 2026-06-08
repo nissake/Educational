@@ -554,20 +554,19 @@ function toggleAnswer() {
   }
 }
 
-function setupNavigation() {
-  const focusables = [];
 
-  document.querySelectorAll('.nav-field').forEach(el => {
-    focusables.push(el);
-  });
+
+
+function setupNavigation() {
+  const grid = document.getElementById('grid');
+  const focusables = Array.from(document.querySelectorAll('.nav-field'));
 
   const newBtn = document.getElementById('newProblemBtn');
   const ansBtn = document.getElementById('toggleAnswerBtn');
 
-  // Make buttons navigable
-  newBtn.classList.add('nav-field');
-  ansBtn.classList.add('nav-field');
-  focusables.push(newBtn, ansBtn);
+  // Buttons are also focusable
+  if (!focusables.includes(newBtn)) focusables.push(newBtn);
+  if (!focusables.includes(ansBtn)) focusables.push(ansBtn);
 
   // Highlight buttons when focused
   focusables.forEach(el => {
@@ -579,43 +578,27 @@ function setupNavigation() {
     });
   });
 
-  function getRect(el) {
-    return el.getBoundingClientRect();
-  }
+  // Helper: find next input in a straight line
+  function moveStraight(currentEl, dRow, dCol) {
+    const td = currentEl.closest('td');
+    if (!td) return;
 
-  function moveFocus(currentEl, direction) {
-    const curRect = getRect(currentEl);
-    const cx = curRect.left + curRect.width / 2;
-    const cy = curRect.top + curRect.height / 2;
+    let r = parseInt(td.dataset.row, 10);
+    let c = parseInt(td.dataset.col, 10);
 
-    let best = null;
-    let bestDist = Infinity;
+    while (true) {
+      r += dRow;
+      c += dCol;
 
-    focusables.forEach(el => {
-      if (el === currentEl) return;
-      const r = getRect(el);
-      const x = r.left + r.width / 2;
-      const y = r.top + r.height / 2;
+      const nextTd = grid.querySelector(`td[data-row="${r}"][data-col="${c}"]`);
+      if (!nextTd) return; // off the grid
 
-      const dx = x - cx;
-      const dy = y - cy;
-
-      if (direction === 'left' && dx >= 0) return;
-      if (direction === 'right' && dx <= 0) return;
-      if (direction === 'up' && dy >= 0) return;
-      if (direction === 'down' && dy <= 0) return;
-
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = el;
+      const inp = nextTd.querySelector('input');
+      if (inp) {
+        inp.focus();
+        inp.select();
+        return;
       }
-    });
-
-    if (best) {
-      currentEl.blur();
-      best.focus();
-      if (best.tagName === 'INPUT') best.select();
     }
   }
 
@@ -631,7 +614,7 @@ function setupNavigation() {
         if (e.target === newBtn) return ansBtn.focus();
         if (e.target === ansBtn) return newBtn.focus();
 
-        moveFocus(e.target, 'left');
+        moveStraight(e.target, 0, -1);
       }
 
       // RIGHT
@@ -642,19 +625,19 @@ function setupNavigation() {
         if (e.target === newBtn) return ansBtn.focus();
         if (e.target === ansBtn) return newBtn.focus();
 
-        moveFocus(e.target, 'right');
+        moveStraight(e.target, 0, 1);
       }
 
       // UP
       else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        moveFocus(e.target, 'up');
+        moveStraight(e.target, -1, 0);
       }
 
       // DOWN
       else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        moveFocus(e.target, 'down');
+        moveStraight(e.target, 1, 0);
       }
 
       // ENTER
@@ -670,6 +653,12 @@ function setupNavigation() {
     });
   });
 }
+
+
+
+
+
+
 
 document.getElementById('newProblemBtn').addEventListener('click', generateProblem);
 document.getElementById('toggleAnswerBtn').addEventListener('click', toggleAnswer);
