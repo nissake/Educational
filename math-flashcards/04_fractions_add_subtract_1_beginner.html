@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fractions Add Subtract (Beginner)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 1rem;
+      background: #f5f5f5;
+      color: #222;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 800px;
+      background: #ffffff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin: 0 0 1rem 0;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Pastel button styling */
+    button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    #newProblemBtn {
+      background: #a7c7ff;
+      border-color: #6b9bff;
+      color: #003366;
+    }
+    #newProblemBtn:hover,
+    #newProblemBtn.btn-focused {
+      background: #8bb4ff;
+      outline: 3px solid #333;
+    }
+
+    #toggleAnswerBtn {
+      background: #b9f6c9;
+      border-color: #7cd89c;
+      color: #004d26;
+    }
+    #toggleAnswerBtn:hover,
+    #toggleAnswerBtn.btn-focused {
+      background: #9eeeb4;
+      outline: 3px solid #333;
+    }
+
+    .worksheet {
+      border: 1px solid #333;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .problem-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap;
+      gap: 0.5rem;
+    }
+
+    .fraction-display {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 40px;
+    }
+
+    .fraction-display .num,
+    .fraction-display .den {
+      padding: 0 0.25rem;
+    }
+
+    .fraction-display .bar {
+      border-top: 1px solid #000;
+      width: 100%;
+      margin: 0.05rem 0;
+    }
+
+    .fraction-input {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 40px;
+    }
+
+    .fraction-input input {
+      width: 3rem;
+      border: 1px solid #333;
+      padding: 0.15rem;
+      font-size: 0.95rem;
+      text-align: center;
+      outline: none;
+      border-radius: 0;
+    }
+
+    .fraction-input .bar {
+      border-top: 1px solid #000;
+      width: 100%;
+      margin: 0.05rem 0;
+    }
+
+    .operator {
+      padding: 0 0.25rem;
+    }
+
+    .main-operator {
+      font-size: 1.9rem;
+      font-weight: 700;
+    }
+
+    .answer-area {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.25rem;
+      border: 2px solid #333;
+    }
+
+    .answer-area.correct {
+      background: #c8f7c5;
+    }
+
+    .answer-area.incorrect {
+      background: #f7c5c5;
+    }
+
+    .feedback {
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .answer-reveal {
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.1); opacity: 0; }
+      60% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>Fractions Add Subtract (Beginner)</h1>
+
+    <div class="controls">
+      <button id="newProblemBtn" class="nav-field">Generate New Problem</button>
+      <button id="toggleAnswerBtn" class="nav-field">Show Answer</button>
+    </div>
+
+    <div class="worksheet">
+
+      <div class="problem-row">
+
+        <!-- Fraction 1 -->
+        <div class="fraction-display">
+          <div class="num" id="frac1Num">1</div>
+          <div class="bar"></div>
+          <div class="den" id="frac1Den">2</div>
+        </div>
+
+        <!-- Operator -->
+        <span class="operator main-operator" id="mainOp">+</span>
+
+        <!-- Fraction 2 -->
+        <div class="fraction-display">
+          <div class="num" id="frac2Num">1</div>
+          <div class="bar"></div>
+          <div class="den" id="frac2Den">2</div>
+        </div>
+
+        <!-- Final = -->
+        <span class="operator main-operator">=</span>
+
+        <!-- Answer -->
+        <div class="answer-area" id="answerArea">
+          <div class="fraction-input">
+            <input class="nav-field" id="ansNum">
+            <div class="bar"></div>
+            <input class="nav-field" id="ansDen">
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="answer-reveal" id="answerReveal" style="display:none;"></div>
+
+    </div>
+  </div>
+
+  <script>
+    function gcd(a, b) {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b !== 0) {
+        const t = b;
+        b = a % b;
+        a = t;
+      }
+      return a || 1;
+    }
+
+    function simplify(n, d) {
+      const g = gcd(n, d);
+      return { n: n / g, d: d / g };
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const allowedNums = [1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100];
+
+    let current = {
+      n1: 1, d: 2,
+      n2: 1,
+      op: '+',
+      ansN: 1, ansD: 1
+    };
+
+    function generateProblem() {
+      const d = randInt(1, 100);
+      const n1 = allowedNums[randInt(0, allowedNums.length - 1)];
+      const n2 = allowedNums[randInt(0, allowedNums.length - 1)];
+      const op = Math.random() < 0.5 ? '+' : '-';
+
+      let ansN;
+      if (op === '+') {
+        ansN = n1 + n2;
+      } else {
+        if (n1 < n2) return generateProblem();
+        ansN = n1 - n2;
+      }
+
+      const simp = simplify(ansN, d);
+
+      current = {
+        n1, d,
+        n2,
+        op,
+        ansN: simp.n,
+        ansD: simp.d
+      };
+
+      updateUI();
+      focusFirstInput();
+    }
+
+   function updateUI() {
+  document.getElementById('frac1Num').textContent = current.n1;
+  document.getElementById('frac1Den').textContent = current.d;
+  document.getElementById('frac2Num').textContent = current.n2;
+  document.getElementById('frac2Den').textContent = current.d;
+  document.getElementById('mainOp').textContent = current.op;
+
+  document.getElementById('ansNum').value = '';
+  document.getElementById('ansDen').value = '';
+
+  const answerArea = document.getElementById('answerArea');
+  answerArea.classList.remove('correct', 'incorrect');
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('answerReveal').style.display = 'none';
+  document.getElementById('toggleAnswerBtn').textContent = 'Show Answer';
+}
+
+function parseIntSafe(str) {
+  const n = parseInt(str, 10);
+  return isNaN(n) ? null : n;
+}
+
+function checkAnswerInstant() {
+  const userN = parseIntSafe(document.getElementById('ansNum').value.trim());
+  const userD = parseIntSafe(document.getElementById('ansDen').value.trim());
+
+  const answerArea = document.getElementById('answerArea');
+  const feedback = document.getElementById('feedback');
+
+  answerArea.classList.remove('correct', 'incorrect');
+
+  if (userN === null || userD === null || userD === 0) {
+    if (document.getElementById('ansNum').value !== '' ||
+        document.getElementById('ansDen').value !== '') {
+      answerArea.classList.add('incorrect');
+      feedback.textContent = 'Keep working.';
+    } else {
+      feedback.textContent = '';
+    }
+    return;
+  }
+
+  const correctN = current.ansN;
+  const correctD = current.ansD;
+
+  if (userN * correctD === correctN * userD) {
+    feedback.textContent = 'Correct!';
+    answerArea.classList.add('correct');
+
+    const coin = document.createElement('div');
+    coin.textContent = '🪙';
+    coin.style.fontSize = '3rem';
+    coin.style.marginTop = '0.5rem';
+    coin.style.animation = 'pop 0.4s ease-out';
+    answerArea.appendChild(coin);
+
+    setTimeout(() => {
+      coin.remove();
+      generateProblem();
+    }, 2000);
+
+  } else {
+    feedback.textContent = 'Not quite.';
+    answerArea.classList.add('incorrect');
+  }
+}
+
+function toggleAnswer() {
+  const reveal = document.getElementById('answerReveal');
+  const btn = document.getElementById('toggleAnswerBtn');
+
+  if (reveal.style.display === 'none') {
+    reveal.style.display = 'block';
+    reveal.textContent = 'Answer: ' + current.ansN + ' / ' + current.ansD;
+    btn.textContent = 'Hide Answer';
+  } else {
+    reveal.style.display = 'none';
+    reveal.textContent = '';
+    btn.textContent = 'Show Answer';
+  }
+}
+
+/* Navigation including buttons */
+function setupNavigation() {
+  const ansNum = document.getElementById('ansNum');
+  const ansDen = document.getElementById('ansDen');
+  const newBtn = document.getElementById('newProblemBtn');
+  const ansBtn = document.getElementById('toggleAnswerBtn');
+
+  const inputs = [ansNum, ansDen];
+  const buttons = [newBtn, ansBtn];
+
+  function focusButton(btn) {
+    buttons.forEach(b => b.classList.remove('btn-focused'));
+    btn.classList.add('btn-focused');
+    btn.focus();
+  }
+
+  function blurButtons() {
+    buttons.forEach(b => b.classList.remove('btn-focused'));
+  }
+
+  /* INPUT FIELD NAVIGATION */
+  inputs.forEach(input => {
+    input.addEventListener('keydown', e => {
+
+      // Move UP to buttons
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        focusButton(newBtn);
+      }
+
+      // Move DOWN between numerator ↔ denominator
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (input === ansNum) ansDen.focus();
+        else ansNum.focus();
+      }
+
+      // Move LEFT/RIGHT between numerator ↔ denominator
+      if (e.key === 'ArrowLeft' && input === ansDen) {
+        e.preventDefault();
+        ansNum.focus();
+      }
+      if (e.key === 'ArrowRight' && input === ansNum) {
+        e.preventDefault();
+        ansDen.focus();
+      }
+    });
+  });
+
+  /* BUTTON NAVIGATION */
+  buttons.forEach(btn => {
+    btn.addEventListener('keydown', e => {
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        focusButton(newBtn);
+      }
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        focusButton(ansBtn);
+      }
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        blurButtons();
+        ansNum.focus();
+      }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        btn.click();
+      }
+    });
+  });
+}
+
+function focusFirstInput() {
+  const first = document.getElementById('ansNum');
+  first.focus();
+  first.select();
+}
+
+document.getElementById('newProblemBtn').addEventListener('click', generateProblem);
+document.getElementById('toggleAnswerBtn').addEventListener('click', toggleAnswer);
+
+document.getElementById('ansNum').addEventListener('input', checkAnswerInstant);
+document.getElementById('ansDen').addEventListener('input', checkAnswerInstant);
+
+setupNavigation();
+generateProblem();
+
+  </script>
+
+</body>
+</html>

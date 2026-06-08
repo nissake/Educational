@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Long Division w/ Remainder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+
+/* Strong focus highlight for navigation */
+.btn-focused {
+  outline: 3px solid #333 !important;
+  box-shadow: 0 0 6px #333;
+}
+
+
+    body {
+      margin: 0;
+      padding: 1rem;
+      background: #f5f5f5;
+      color: #222;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      background: #ffffff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin: 0 0 1rem 0;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    #newProblemBtn {
+      background: #a7c7ff;
+      border-color: #6b9bff;
+      color: #003366;
+    }
+    #newProblemBtn:hover,
+    #newProblemBtn.btn-focused {
+      background: #8bb4ff;
+    }
+
+    #toggleAnswerBtn {
+      background: #b9f6c9;
+      border-color: #7cd89c;
+      color: #004d26;
+    }
+    #toggleAnswerBtn:hover,
+    #toggleAnswerBtn.btn-focused {
+      background: #9eeeb4;
+    }
+
+    .workspace {
+      border: 2px solid #333;
+      padding: 0.5rem;
+      overflow-x: auto;
+      background: #fff;
+      transition: background 0.3s ease;
+    }
+
+    .workspace.correct {
+      background: #c8f7c5;
+    }
+
+    .grid {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+
+    .grid td {
+      width: 2.2rem;
+      height: 2.2rem;
+      border: 1px solid #ddd;
+      text-align: center;
+      vertical-align: middle;
+      padding: 0;
+      position: relative;
+    }
+
+    .grid input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      text-align: center;
+      font-size: 1rem;
+      outline: none;
+      background: transparent;
+    }
+
+    .grid input.incorrect {
+      background: #f7c5c5;
+    }
+
+    .grid .fixed {
+      font-weight: 600;
+    }
+
+    /* Bold long-division bracket */
+    .top-bar {
+      border-bottom: 4px solid #000 !important;
+    }
+
+    .left-bar {
+      border-right: 4px solid #000 !important;
+    }
+
+    /* Bold subtraction lines */
+    .minus-row {
+      border-top: 3px solid #000;
+    }
+
+    .minus-sign {
+      font-weight: 700;
+    }
+
+    .feedback {
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .answer-reveal {
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    @media (max-width: 480px) {
+      .grid td {
+        width: 1.8rem;
+        height: 1.8rem;
+      }
+      .grid input {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Long Division w/ Remainder</h1>
+
+    <div class="controls">
+      <button id="newProblemBtn">Generate New Problem</button>
+      <button id="toggleAnswerBtn">Show Answer</button>
+    </div>
+
+    <div class="workspace" id="workspace">
+      <table class="grid" id="grid"></table>
+      <div class="feedback" id="feedback"></div>
+      <div class="answer-reveal" id="answerReveal" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function chooseDivisorDigits() {
+      const r = Math.random();
+      if (r < 0.7) return 1;
+      if (r < 0.9) return 2;
+      return 3;
+    }
+
+    let current = {
+      divisor: 0,
+      dividend: 0,
+      quotient: 0,
+      remainder: 0
+    };
+
+    function enforceSingleChar(input) {
+      input.addEventListener('input', () => {
+        if (input.value.length > 1) {
+          input.value = input.value.slice(0, 1);
+        }
+      });
+
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        if (text.length > 0) {
+          input.value = text[0];
+        }
+      });
+    }
+
+    function generateProblem() {
+      let divisorDigits = chooseDivisorDigits();
+      let divisorMin = divisorDigits === 1 ? 2 : (divisorDigits === 2 ? 10 : 100);
+      let divisorMax = divisorDigits === 1 ? 9 : (divisorDigits === 2 ? 99 : 999);
+
+      let divisor = randInt(divisorMin, divisorMax);
+
+      let dividend;
+      while (true) {
+        dividend = randInt(2, 999);
+        if (dividend > divisor) break;
+      }
+
+      const quotient = Math.floor(dividend / divisor);
+      const remainder = dividend % divisor;
+
+      current = { divisor, dividend, quotient, remainder };
+
+      buildGrid();
+      clearFeedback();
+      const reveal = document.getElementById('answerReveal');
+      reveal.style.display = 'none';
+      reveal.textContent = '';
+      document.getElementById('toggleAnswerBtn').textContent = 'Show Answer';
+      document.getElementById('workspace').classList.remove('correct');
+    }
+
+    function buildGrid() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+
+      const divisorStr = String(current.divisor);
+      const dividendStr = String(current.dividend);
+      const qStr = String(current.quotient);
+      const rStr = String(current.remainder);
+
+      const divisorDigits = divisorStr.length;
+      const dividendDigits = dividendStr.length;
+      const quotientDigits = qStr.length;
+      const remainderDigits = current.remainder === 0 ? 0 : rStr.length;
+
+      const extraLeftCols = 0;
+      const extraRightCols = 1;
+
+      const divisorStartCol = extraLeftCols + 1;
+      const barCol = divisorStartCol + divisorDigits;
+
+      const dividendStartCol = barCol;
+
+      const dividendOnesCol = dividendStartCol + dividendDigits - 1;
+
+      const rLabelCol = dividendOnesCol + 1;
+
+      const quotientStartCol = rLabelCol - quotientDigits;
+
+      const remainderStartCol = rLabelCol + 1;
+
+      const lastUsedCol = remainderDigits > 0
+        ? remainderStartCol + remainderDigits - 1
+        : rLabelCol;
+
+      const totalCols = lastUsedCol + 1 + extraRightCols;
+
+      const baseRow = 2;
+      const bottomRows = dividendDigits * 2 + 1;
+      const totalRows = baseRow + 1 + bottomRows;
+
+      function createCell(r, c) {
+        const td = document.createElement('td');
+        td.dataset.row = r;
+        td.dataset.col = c;
+        return td;
+      }
+
+      for (let r = 0; r < totalRows; r++) {
+        const tr = document.createElement('tr');
+        for (let c = 0; c < totalCols; c++) {
+          tr.appendChild(createCell(r, c));
+        }
+        grid.appendChild(tr);
+      }
+
+// Horizontal top bar above the dividend digits only
+for (let c = dividendStartCol; c < dividendStartCol + dividendDigits; c++) {
+  grid.rows[1].cells[c].classList.add('top-bar');
+}
+
+
+    // One-cell-tall vertical bar between divisor and dividend
+const leftBarRow = baseRow; // same row as divisor/dividend digits
+const leftBarCol = divisorStartCol + divisorDigits - 1; // last divisor digit
+grid.rows[leftBarRow].cells[leftBarCol].classList.add('left-bar');
+
+
+      for (let i = 0; i < divisorDigits; i++) {
+        const col = divisorStartCol + i;
+        const td = grid.rows[baseRow].cells[col];
+        td.textContent = divisorStr[i];
+        td.classList.add('fixed');
+      }
+
+      for (let i = 0; i < dividendDigits; i++) {
+        const col = dividendStartCol + i;
+        const td = grid.rows[baseRow].cells[col];
+        td.textContent = dividendStr[i];
+        td.classList.add('fixed');
+      }
+
+      const quotientRow = 1;
+      const qInputs = [];
+      for (let i = 0; i < quotientDigits; i++) {
+        const col = quotientStartCol + i;
+        const td = grid.rows[quotientRow].cells[col];
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 1;
+        input.classList.add('answer-cell', 'nav-field');
+        input.dataset.role = 'quotient';
+        input.dataset.index = i;
+        enforceSingleChar(input);
+        td.appendChild(input);
+        qInputs.push(input);
+      }
+
+      let rLabelInput = null;
+      if (remainderDigits > 0) {
+        const td = grid.rows[quotientRow].cells[rLabelCol];
+        rLabelInput = document.createElement('input');
+        rLabelInput.type = 'text';
+        rLabelInput.maxLength = 1;
+        rLabelInput.classList.add('answer-cell', 'nav-field');
+        rLabelInput.dataset.role = 'rlabel';
+        enforceSingleChar(rLabelInput);
+        td.appendChild(rLabelInput);
+      }
+
+      const remInputs = [];
+      if (remainderDigits > 0) {
+        for (let i = 0; i < remainderDigits; i++) {
+          const col = remainderStartCol + i;
+          const td = grid.rows[quotientRow].cells[col];
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = 1;
+          input.classList.add('answer-cell', 'nav-field');
+          input.dataset.role = 'remainder';
+          input.dataset.index = i;
+          enforceSingleChar(input);
+          td.appendChild(input);
+          remInputs.push(input);
+        }
+      }
+
+      const minusCol = divisorStartCol + divisorDigits - 1;
+
+for (let r = baseRow + 1; r < totalRows; r++) {
+  if ((r - baseRow) % 2 === 1) {
+    const row = grid.rows[r];
+
+    // Mark the row visually (optional, keeps your existing styling)
+    for (let c = dividendStartCol; c < dividendStartCol + dividendDigits; c++) {
+      row.cells[c].classList.add('minus-row');
+    }
+
+    // Place the minus sign under the divisor's ones digit
+    const minusCell = row.cells[minusCol];
+    minusCell.textContent = '−';
+    minusCell.classList.add('minus-sign', 'fixed');
+
+    // ⭐ Bold bottom border under dividend digits ONLY (minus bar)
+    for (let c = dividendStartCol; c < dividendStartCol + dividendDigits; c++) {
+      const cell = row.cells[c];
+
+      // Skip the minus-sign cell
+      if (c === minusCol) continue;
+
+      // Skip outside borders
+      const isLeftOutside = (c === 0);
+      const isRightOutside = (c === totalCols - 1);
+      if (isLeftOutside || isRightOutside) continue;
+
+      // Apply bold bottom border
+      cell.style.borderBottom = "3px solid #000";
+    }
+  }
+}
+
+
+
+      for (let r = 0; r < totalRows; r++) {
+        for (let c = 0; c < totalCols; c++) {
+          const td = grid.rows[r].cells[c];
+          if (td.classList.contains('fixed') || td.classList.contains('minus-sign')) continue;
+          if (td.querySelector('input')) continue;
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = 1;
+          input.classList.add('nav-field');
+          enforceSingleChar(input);
+          td.appendChild(input);
+        }
+      }
+
+      setupNavigation();
+      setupAnswerChecking(qInputs, rLabelInput, remInputs);
+// Auto-focus the cell above the leftmost dividend digit
+const focusCell = grid.rows[1].cells[dividendStartCol];
+const focusInput = focusCell.querySelector('input');
+if (focusInput) {
+  focusInput.focus();
+  focusInput.select();
+}
+
+    }
+
+    function setupAnswerChecking(qInputs, rLabelInput, remInputs) {
+      const workspace = document.getElementById('workspace');
+      const feedback = document.getElementById('feedback');
+
+      const answerInputs = [
+        ...qInputs,
+        ...(rLabelInput ? [rLabelInput] : []),
+        ...remInputs
+      ];
+
+      function clearIncorrect() {
+        answerInputs.forEach(inp => inp.classList.remove('incorrect'));
+      }
+
+      function checkAnswers() {
+        clearIncorrect();
+        workspace.classList.remove('correct');
+        feedback.textContent = '';
+
+        const qStr = String(current.quotient);
+        const rStr = String(current.remainder);
+        const qDigits = qStr.split('');
+        const rDigits = current.remainder === 0 ? [] : rStr.split('');
+
+        const qLen = qDigits.length;
+        const qInputLen = qInputs.length;
+
+        let allFilled = true;
+        let allCorrect = true;
+
+        answerInputs.forEach(inp => {
+          const role = inp.dataset.role;
+          const idx = parseInt(inp.dataset.index || '0', 10);
+          const val = inp.value.trim();
+
+          if (val === '') {
+            allFilled = false;
+            return;
+          }
+
+          let expected = null;
+
+          if (role === 'quotient') {
+            const offset = qLen - qInputLen + idx;
+            expected = qDigits[offset] || null;
+          } else if (role === 'rlabel') {
+            expected = rDigits.length > 0 ? 'r' : null;
+          } else if (role === 'remainder') {
+            const rLen = rDigits.length;
+            const rInputLen = remInputs.length;
+            const offset = rLen - rInputLen + idx;
+            expected = rDigits[offset] || null;
+          }
+
+          if (expected === null) {
+            if (val !== '') {
+              inp.classList.add('incorrect');
+              allCorrect = false;
+            }
+          } else {
+            if (role === 'rlabel') {
+              if (val.toLowerCase() !== 'r') {
+                inp.classList.add('incorrect');
+                allCorrect = false;
+              }
+            } else {
+              if (val !== expected) {
+                inp.classList.add('incorrect');
+                allCorrect = false;
+              }
+            }
+          }
+        });
+if (!allFilled) {
+  feedback.textContent = '';
+  return;
+}
+
+if (allCorrect) {
+  workspace.classList.add('correct');
+  feedback.textContent = 'Great job! Correct answer.';
+  setTimeout(() => {
+    generateProblem();
+  }, 1200);
+} else {
+  feedback.textContent = 'Check the red boxes and try again.';
+}
+}
+
+answerInputs.forEach(inp => {
+  inp.addEventListener('input', () => {
+    inp.classList.remove('incorrect');
+    checkAnswers();
+  });
+});
+}
+
+function clearFeedback() {
+  document.getElementById('feedback').textContent = '';
+  document.querySelectorAll('.answer-cell').forEach(i => i.classList.remove('incorrect'));
+}
+
+function toggleAnswer() {
+  const reveal = document.getElementById('answerReveal');
+  const btn = document.getElementById('toggleAnswerBtn');
+
+  const qStr = String(current.quotient);
+  const rStr = String(current.remainder);
+
+  if (reveal.style.display === 'none') {
+    reveal.style.display = 'block';
+    reveal.textContent = current.remainder === 0
+      ? 'Answer: ' + qStr
+      : 'Answer: ' + qStr + ' r ' + rStr;
+    btn.textContent = 'Hide Answer';
+  } else {
+    reveal.style.display = 'none';
+    reveal.textContent = '';
+    btn.textContent = 'Show Answer';
+  }
+}
+
+function setupNavigation() {
+  const focusables = [];
+
+  document.querySelectorAll('.nav-field').forEach(el => {
+    focusables.push(el);
+  });
+
+  const newBtn = document.getElementById('newProblemBtn');
+  const ansBtn = document.getElementById('toggleAnswerBtn');
+
+  // Make buttons navigable
+  newBtn.classList.add('nav-field');
+  ansBtn.classList.add('nav-field');
+  focusables.push(newBtn, ansBtn);
+
+  // Highlight buttons when focused
+  focusables.forEach(el => {
+    el.addEventListener('focus', () => {
+      if (el.tagName === 'BUTTON') el.classList.add('btn-focused');
+    });
+    el.addEventListener('blur', () => {
+      if (el.tagName === 'BUTTON') el.classList.remove('btn-focused');
+    });
+  });
+
+  function getRect(el) {
+    return el.getBoundingClientRect();
+  }
+
+  function moveFocus(currentEl, direction) {
+    const curRect = getRect(currentEl);
+    const cx = curRect.left + curRect.width / 2;
+    const cy = curRect.top + curRect.height / 2;
+
+    let best = null;
+    let bestDist = Infinity;
+
+    focusables.forEach(el => {
+      if (el === currentEl) return;
+      const r = getRect(el);
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+
+      const dx = x - cx;
+      const dy = y - cy;
+
+      if (direction === 'left' && dx >= 0) return;
+      if (direction === 'right' && dx <= 0) return;
+      if (direction === 'up' && dy >= 0) return;
+      if (direction === 'down' && dy <= 0) return;
+
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = el;
+      }
+    });
+
+    if (best) {
+      currentEl.blur();
+      best.focus();
+      if (best.tagName === 'INPUT') best.select();
+    }
+  }
+
+  // Main navigation handler
+  focusables.forEach(el => {
+    el.addEventListener('keydown', e => {
+
+      // LEFT
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+
+        // Special case: switch between top buttons
+        if (e.target === newBtn) return ansBtn.focus();
+        if (e.target === ansBtn) return newBtn.focus();
+
+        moveFocus(e.target, 'left');
+      }
+
+      // RIGHT
+      else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+
+        // Special case: switch between top buttons
+        if (e.target === newBtn) return ansBtn.focus();
+        if (e.target === ansBtn) return newBtn.focus();
+
+        moveFocus(e.target, 'right');
+      }
+
+      // UP
+      else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        moveFocus(e.target, 'up');
+      }
+
+      // DOWN
+      else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        moveFocus(e.target, 'down');
+      }
+
+      // ENTER
+      else if (e.key === 'Enter') {
+        if (e.target === newBtn) {
+          e.preventDefault();
+          newBtn.click();
+        } else if (e.target === ansBtn) {
+          e.preventDefault();
+          ansBtn.click();
+        }
+      }
+    });
+  });
+}
+
+document.getElementById('newProblemBtn').addEventListener('click', generateProblem);
+document.getElementById('toggleAnswerBtn').addEventListener('click', toggleAnswer);
+
+generateProblem();
+</script>
+</body>
+</html>

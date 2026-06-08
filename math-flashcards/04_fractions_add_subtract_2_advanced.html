@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fractions Add Subtract (Advanced)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 1rem;
+      background: #f5f5f5;
+      color: #222;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 800px;
+      background: #ffffff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin: 0 0 1rem 0;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Pastel button styling */
+    #newProblemBtn {
+      background: #a7c7ff;
+      border: 1px solid #6b9bff;
+      color: #003366;
+      border-radius: 8px;
+    }
+    #newProblemBtn:hover {
+      background: #8bb4ff;
+    }
+
+    #toggleAnswerBtn {
+      background: #b9f6c9;
+      border: 1px solid #7cd89c;
+      color: #004d26;
+      border-radius: 8px;
+    }
+    #toggleAnswerBtn:hover {
+      background: #9eeeb4;
+    }
+
+    button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+
+/* Bold border on mouseover */
+#newProblemBtn:hover,
+#toggleAnswerBtn:hover {
+  outline: 3px solid #000;
+}
+
+
+    .worksheet {
+      border: 1px solid #333;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .problem-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap;
+      gap: 0.5rem;
+    }
+
+    .fraction-display {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 40px;
+    }
+
+    .fraction-display .num,
+    .fraction-display .den {
+      padding: 0 0.25rem;
+    }
+
+    .fraction-display .bar {
+      border-top: 1px solid #000;
+      width: 100%;
+      margin: 0.05rem 0;
+    }
+
+    .fraction-input {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 40px;
+    }
+
+    .fraction-input input {
+      width: 3rem;
+      border: 1px solid #333;
+      padding: 0.15rem;
+      font-size: 0.95rem;
+      text-align: center;
+      outline: none;
+      border-radius: 0;
+    }
+
+    .fraction-input .bar {
+      border-top: 1px solid #000;
+      width: 100%;
+      margin: 0.05rem 0;
+    }
+
+    /* Operator styling */
+    .operator {
+      padding: 0 0.25rem;
+    }
+
+    .internal-operator {
+      font-size: 0.9rem;
+      opacity: 0.6;
+      font-weight: normal;
+    }
+
+    .main-operator {
+      font-size: 1.9rem;
+      font-weight: 700;
+      opacity: 1;
+    }
+
+    .answer-area {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.25rem;
+      border: 2px solid #333;
+    }
+
+    .answer-area.correct {
+      background: #c8f7c5;
+    }
+
+    .answer-area.incorrect {
+      background: #f7c5c5;
+    }
+
+    .feedback {
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .answer-reveal {
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    /* Gold coin pop animation */
+    @keyframes pop {
+      0% { transform: scale(0.1); opacity: 0; }
+      60% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    @media (max-width: 480px) {
+      .fraction-input input {
+        width: 2.5rem;
+      }
+      .fraction-display {
+        min-width: 32px;
+      }
+      .fraction-input {
+        min-width: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>Fractions Add Subtract (Advanced)</h1>
+
+    <div class="controls">
+      <button id="newProblemBtn">Generate New Problem</button>
+      <button id="toggleAnswerBtn">Show Answer</button>
+    </div>
+
+    <div class="worksheet">
+
+      <!-- MAIN PROBLEM ROW -->
+      <div class="problem-row">
+
+        <!-- Initial fraction 1 -->
+        <div class="fraction-display">
+          <div class="num" id="frac1Num">1</div>
+          <div class="bar"></div>
+          <div class="den" id="frac1Den">2</div>
+        </div>
+
+        <!-- × -->
+        <span class="operator internal-operator">×</span>
+
+        <!-- Form of 1 (1) -->
+        <div class="fraction-input">
+          <input class="nav-field" id="form1Num">
+          <div class="bar"></div>
+          <input class="nav-field" id="form1Den">
+        </div>
+
+        <!-- = -->
+        <span class="operator internal-operator">=</span>
+
+        <!-- Equivalent fraction 1 -->
+        <div class="fraction-input">
+          <input class="nav-field" id="eq1Num">
+          <div class="bar"></div>
+          <input class="nav-field" id="eq1Den">
+        </div>
+
+        <!-- Main operator -->
+        <span class="operator main-operator" id="mainOp">+</span>
+
+        <!-- Initial fraction 2 -->
+        <div class="fraction-display">
+          <div class="num" id="frac2Num">1</div>
+          <div class="bar"></div>
+          <div class="den" id="frac2Den">4</div>
+        </div>
+
+        <!-- × -->
+        <span class="operator internal-operator">×</span>
+
+        <!-- Form of 1 (2) -->
+        <div class="fraction-input">
+          <input class="nav-field" id="form2Num">
+          <div class="bar"></div>
+          <input class="nav-field" id="form2Den">
+        </div>
+
+        <!-- = -->
+        <span class="operator internal-operator">=</span>
+
+        <!-- Equivalent fraction 2 -->
+        <div class="fraction-input">
+          <input class="nav-field" id="eq2Num">
+          <div class="bar"></div>
+          <input class="nav-field" id="eq2Den">
+        </div>
+
+        <!-- Final = -->
+        <span class="operator main-operator">=</span>
+
+        <!-- Answer -->
+        <div class="answer-area" id="answerArea">
+          <div class="fraction-input">
+            <input class="nav-field" id="ansNum">
+            <div class="bar"></div>
+            <input class="nav-field" id="ansDen">
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="answer-reveal" id="answerReveal" style="display:none;"></div>
+
+    </div>
+  </div>
+<script>
+function gcd(a, b) {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  while (b !== 0) {
+    const t = b;
+    b = a % b;
+    a = t;
+  }
+  return a || 1;
+}
+
+function simplify(n, d) {
+  const g = gcd(n, d);
+  return { n: n / g, d: d / g };
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+let current = {
+  n1: 1, d1: 2,
+  n2: 1, d2: 4,
+  op: '+',
+  ansN: 1, ansD: 1
+};
+
+function generateProblem() {
+  let n1, d1, n2, d2, op, ansN, ansD, value;
+
+  while (true) {
+    n1 = randInt(1, 10);
+    d1 = randInt(1, 10);
+    n2 = randInt(1, 10);
+    d2 = randInt(1, 10);
+
+    op = Math.random() < 0.5 ? '+' : '-';
+
+    if (op === '+') {
+      ansN = n1 * d2 + n2 * d1;
+      ansD = d1 * d2;
+    } else {
+      if (n1 * d2 < n2 * d1) continue;
+      ansN = n1 * d2 - n2 * d1;
+      ansD = d1 * d2;
+    }
+
+    if (ansD === 0) continue;
+    if (ansN === 0) continue;
+
+    value = ansN / ansD;
+
+    if (value > 1) {
+      if (Math.random() <= 0.1) break;
+      else continue;
+    } else break;
+  }
+
+  const simp = simplify(ansN, ansD);
+
+  current = {
+    n1, d1, n2, d2, op,
+    ansN: simp.n,
+    ansD: simp.d
+  };
+
+  updateUI();
+  focusFirstInput();
+}
+
+function updateUI() {
+  document.getElementById('frac1Num').textContent = current.n1;
+  document.getElementById('frac1Den').textContent = current.d1;
+  document.getElementById('frac2Num').textContent = current.n2;
+  document.getElementById('frac2Den').textContent = current.d2;
+  document.getElementById('mainOp').textContent = current.op;
+
+  const ids = [
+    'form1Num','form1Den','eq1Num','eq1Den',
+    'form2Num','form2Den','eq2Num','eq2Den',
+    'ansNum','ansDen'
+  ];
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  const answerArea = document.getElementById('answerArea');
+  answerArea.classList.remove('correct', 'incorrect');
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('answerReveal').style.display = 'none';
+  document.getElementById('toggleAnswerBtn').textContent = 'Show Answer';
+}
+
+function parseIntSafe(str) {
+  const n = parseInt(str, 10);
+  return isNaN(n) ? null : n;
+}
+
+function checkAnswerInstant() {
+  const ansNumInput = document.getElementById('ansNum').value.trim();
+  const ansDenInput = document.getElementById('ansDen').value.trim();
+
+  const userN = parseIntSafe(ansNumInput);
+  const userD = parseIntSafe(ansDenInput);
+
+  const answerArea = document.getElementById('answerArea');
+  const feedback = document.getElementById('feedback');
+
+  answerArea.classList.remove('correct', 'incorrect');
+
+  if (userN === null || userD === null || userD === 0) {
+    if (ansNumInput !== '' || ansDenInput !== '') {
+      answerArea.classList.add('incorrect');
+      feedback.textContent = 'Keep working.';
+    } else {
+      feedback.textContent = '';
+    }
+    return;
+  }
+
+  const correctN = current.ansN;
+  const correctD = current.ansD;
+
+  if (userN * correctD === correctN * userD && userD > 0) {
+    feedback.textContent = 'Correct!';
+    answerArea.classList.add('correct');
+
+    const coin = document.createElement('div');
+    coin.textContent = '🪙';
+    coin.style.fontSize = '3rem';
+    coin.style.marginTop = '0.5rem';
+    coin.style.animation = 'pop 0.4s ease-out';
+    answerArea.appendChild(coin);
+
+    setTimeout(() => {
+      coin.remove();
+      generateProblem();
+    }, 2000);
+
+  } else {
+    feedback.textContent = 'Not quite.';
+    answerArea.classList.add('incorrect');
+  }
+}
+
+function toggleAnswer() {
+  const reveal = document.getElementById('answerReveal');
+  const btn = document.getElementById('toggleAnswerBtn');
+
+  if (reveal.style.display === 'none') {
+    reveal.style.display = 'block';
+    reveal.textContent = 'Answer: ' + current.ansN + ' / ' + current.ansD;
+    btn.textContent = 'Hide Answer';
+  } else {
+    reveal.style.display = 'none';
+    reveal.textContent = '';
+    btn.textContent = 'Show Answer';
+  }
+}
+
+/* ADVANCED NAVIGATION INCLUDING BUTTONS */
+function setupNavigation() {
+  const grid = [
+    ['form1Num', 'form1Den'],
+    ['eq1Num', 'eq1Den'],
+    ['form2Num', 'form2Den'],
+    ['eq2Num', 'eq2Den'],
+    ['ansNum', 'ansDen']
+  ];
+
+  const newBtn = document.getElementById('newProblemBtn');
+  const ansBtn = document.getElementById('toggleAnswerBtn');
+  const buttons = [newBtn, ansBtn];
+
+  function focusButton(btn) {
+    buttons.forEach(b => b.classList.remove('btn-focused'));
+    btn.classList.add('btn-focused');
+    btn.focus();
+  }
+
+  function blurButtons() {
+    buttons.forEach(b => b.classList.remove('btn-focused'));
+  }
+
+  /* INPUT FIELD NAVIGATION */
+  grid.flat().forEach(id => {
+    const field = document.getElementById(id);
+
+    field.addEventListener('keydown', e => {
+      const key = e.key;
+
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(key)) {
+        e.preventDefault();
+      }
+
+      let colIndex = -1;
+      let rowIndex = -1;
+
+      for (let c = 0; c < grid.length; c++) {
+        for (let r = 0; r < grid[c].length; r++) {
+          if (grid[c][r] === field.id) {
+            colIndex = c;
+            rowIndex = r;
+          }
+        }
+      }
+
+      // UP → buttons
+      if (key === 'ArrowUp') {
+        focusButton(newBtn);
+        return;
+      }
+
+      // DOWN → numerator/denominator toggle
+      if (key === 'ArrowDown') {
+        const nextRow = rowIndex === 0 ? 1 : 0;
+        document.getElementById(grid[colIndex][nextRow]).focus();
+        return;
+      }
+
+      // LEFT
+      if (key === 'ArrowLeft' && colIndex > 0) {
+        document.getElementById(grid[colIndex - 1][rowIndex]).focus();
+      }
+
+      // RIGHT
+      if (key === 'ArrowRight' && colIndex < grid.length - 1) {
+        document.getElementById(grid[colIndex + 1][rowIndex]).focus();
+      }
+    });
+  });
+
+  /* BUTTON NAVIGATION */
+  buttons.forEach(btn => {
+    btn.addEventListener('keydown', e => {
+      const key = e.key;
+
+      if (key === 'ArrowLeft') {
+        e.preventDefault();
+        focusButton(newBtn);
+      }
+
+      if (key === 'ArrowRight') {
+        e.preventDefault();
+        focusButton(ansBtn);
+      }
+
+      if (key === 'ArrowDown') {
+        e.preventDefault();
+        blurButtons();
+        document.getElementById('form1Num').focus();
+      }
+
+      if (key === 'Enter') {
+        e.preventDefault();
+        btn.click();
+      }
+    });
+
+    // Mouse focus also gets bold border
+    btn.addEventListener('focus', () => btn.classList.add('btn-focused'));
+    btn.addEventListener('blur', () => btn.classList.remove('btn-focused'));
+  });
+}
+
+function focusFirstInput() {
+  const first = document.getElementById('form1Num');
+  first.focus();
+  first.select();
+}
+
+document.getElementById('newProblemBtn').addEventListener('click', generateProblem);
+document.getElementById('toggleAnswerBtn').addEventListener('click', toggleAnswer);
+
+document.getElementById('ansNum').addEventListener('input', checkAnswerInstant);
+document.getElementById('ansDen').addEventListener('input', checkAnswerInstant);
+
+setupNavigation();
+generateProblem();
+</script>
